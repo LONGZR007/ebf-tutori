@@ -28,7 +28,15 @@ struct globalmem_dev *globalmem_dev;
 
 static void globalmem_setup_cdev(struct globalmem_dev *dev, int index)
 {
-    int err, devno = MKDEV(globalmem_major, index);
+    int err, devno = MKDEV(globalmem_major, index);    // 合成dev_t
     
-    cdev_init(&dev-cdev, &globalmem_fops);
+    cdev_init(&dev-cdev,  &globalmem_fops);    // 关联文件操作结构体和cdev结构体
+
+    dev->cdev.owner = THIS_MODULE;
+    err = cdev_add(&dev-cdev, devno, 1);
+    if (err)
+    {
+        printk(KERN_NOTICE "error %d adding globalmem%d", err, index);    // 注册设备
+    }
+
 }
