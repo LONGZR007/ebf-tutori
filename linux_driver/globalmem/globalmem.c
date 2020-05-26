@@ -28,5 +28,7 @@ struct globalmem_dev *globalmem_dev;
 
 static void globalmem_setup_cdev(struct globalmem_dev *dev, int index)
 {
+    int err, devno = MKDEV(globalmem_major, index);
     
+    cdev_init(&dev-cdev, &globalmem_fops);
 }
