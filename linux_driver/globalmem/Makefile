@@ -1,6 +1,6 @@
 KERNEL_DIR=/home/long/gitee/ebf/ebf-buster-linux
 #KERNEL_DIR=/home/long/gitee/ebf/ebf_6ull_linux
-obj-m := hello_world.o
+obj-m := globalmem.o
 all:
 	$(MAKE) -C $(KERNEL_DIR) M=$(CURDIR) modules
 clean:
