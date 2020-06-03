@@ -1,0 +1,1 @@
+cmd_/home/long/github/ebf-tutorial/linux_driver/led/led.ko := arm-linux-gnueabihf-ld -r  -EL -T ./scripts/module-common.lds -T ./arch/arm/kernel/module.lds  --build-id  -o /home/long/github/ebf-tutorial/linux_driver/led/led.ko /home/long/github/ebf-tutorial/linux_driver/led/led.o /home/long/github/ebf-tutorial/linux_driver/led/led.mod.o ;  true

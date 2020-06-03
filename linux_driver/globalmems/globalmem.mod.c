@@ -30,11 +30,10 @@ __attribute__((section("__versions"))) = {
 	{ 0x37a0cba, "kfree" },
 	{ 0x8a94638d, "cdev_del" },
 	{ 0xdb7305a1, "__stack_chk_fail" },
+	{ 0x6091b333, "unregister_chrdev_region" },
 	{ 0xa5e2d55a, "cdev_add" },
 	{ 0x2c7249e3, "cdev_init" },
-	{ 0x6091b333, "unregister_chrdev_region" },
-	{ 0xd82356bc, "kmem_cache_alloc" },
-	{ 0x469362c, "kmalloc_caches" },
+	{ 0x76f6c5ef, "kmalloc_order" },
 	{ 0xe3ec2f2b, "alloc_chrdev_region" },
 	{ 0x3fd78f3b, "register_chrdev_region" },
 	{ 0x8f678b07, "__stack_chk_guard" },
@@ -51,4 +50,4 @@ __attribute__((section(".modinfo"))) =
 "depends=";
 
 
-MODULE_INFO(srcversion, "FACCEDA327B37FF4B67C753");
+MODULE_INFO(srcversion, "4A4F2A2EF183D727EE6A25F");

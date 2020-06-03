@@ -39,8 +39,8 @@ __attribute__((section("__versions"))) = {
 	{ 0x3fd78f3b, "register_chrdev_region" },
 	{ 0x8f678b07, "__stack_chk_guard" },
 	{ 0xf4fa543b, "arm_copy_to_user" },
-	{ 0x28cc25db, "arm_copy_from_user" },
 	{ 0x5f754e5a, "memset" },
+	{ 0x28cc25db, "arm_copy_from_user" },
 	{ 0xefd6cf06, "__aeabi_unwind_cpp_pr0" },
 	{ 0x7c32d0f0, "printk" },
 };
@@ -51,4 +51,4 @@ __attribute__((section(".modinfo"))) =
 "depends=";
 
 
-MODULE_INFO(srcversion, "FACCEDA327B37FF4B67C753");
+MODULE_INFO(srcversion, "52957F5ECE5A6B5745C07D9");

@@ -25,14 +25,16 @@ private_data：该指针变量只会用于设备驱动程序中，内核并不�
 #define GLOBALMEM_SIZE     0x1000    // 缓冲区的大小
 #define MEM_CLEAR          0x1
 #define GLOBALMEM_MAJOR    230       // 默认的主设备号
+#define DEVICE_NUM         10
 
 static int globalmem_major = GLOBALMEM_MAJOR;    // 定义一个设备号
 module_param(globalmem_major, int, S_IRUGO);   // 模块参数，装载模块是可以向模块传递参数
 
 struct globalmem_dev
 {
-    struct cdev cdev;    // cdev 结构体（里面记录了设备号，文件操作结构体，所属模块等）
+    struct cdev cdev;       // cdev 结构体（里面记录了设备号，文件操作结构体，所属模块等）
     unsigned char mem[GLOBALMEM_SIZE];
+    struct mutex mutex;    // 互斥体
 };
 
 struct globalmem_dev *globalmem_devp;
@@ -40,7 +42,8 @@ struct globalmem_dev *globalmem_devp;
 // 打开文件
 static int globalmem_open(struct inode *inode, struct file *filp)
 {
-    filp->private_data = globalmem_devp;
+    struct globalmem_dev *dev = container_of(inode->i_cdev, struct globalmem_dev, cdev);
+    filp->private_data = dev;
     printk("open dev file\n");
     return 0;
 }
@@ -59,7 +62,9 @@ static long globalmem_ioctl(struct file *filp, unsigned int cmd, unsigned long a
 
     switch (cmd){
     case MEM_CLEAR:
+         mutex_lock(&dev->mutex);
          memset(dev->mem, 0, GLOBALMEM_SIZE);
+         mutex_unlock(&dev->mutex);
          printk(KERN_INFO "globalmem is set to zero\n");
          break;
 
@@ -85,6 +90,8 @@ static ssize_t globalmem_read(struct file *filp, char __user *buf, size_t size, 
     if (count > GLOBALMEM_SIZE - p)
         count = GLOBALMEM_SIZE - p;
 
+    mutex_lock(&dev->mutex);
+
     if (copy_to_user(buf, dev->mem + p, count))
         ret = -EFAULT;
     else {
@@ -93,6 +100,8 @@ static ssize_t globalmem_read(struct file *filp, char __user *buf, size_t size, 
 
         printk(KERN_INFO "read %u butes(s) form %lu\n", count, p);
     }
+
+    mutex_unlock(&dev->mutex);
 
     return ret;
 }
@@ -112,6 +121,8 @@ static ssize_t globalmem_write(struct file *filp, const char __user *buf, size_t
     if (count > GLOBALMEM_SIZE - p)
         count = GLOBALMEM_SIZE - p;
 
+    mutex_lock(&dev->mutex);
+
     if (copy_from_user(dev->mem + p, buf, count))
         ret = -EFAULT;
     else {
@@ -120,6 +131,8 @@ static ssize_t globalmem_write(struct file *filp, const char __user *buf, size_t
     
         printk(KERN_INFO "writeren %u bytes(s) from %lu\n", count, p);
     }
+
+    mutex_unlock(&dev->mutex);
 
     return ret;
 }
@@ -188,33 +201,38 @@ static void globalmem_setup_cdev(struct globalmem_dev *dev, int index)
 static int __init globalmem_init(void)
 {
     int ret;
+    int i=0;
 
     dev_t devno = MKDEV(globalmem_major, 0);    // 合成设备号，次设备号为0
 
     if (globalmem_major)
-        ret = register_chrdev_region(devno, 1, "globalmem");    // 申请一个已知的设备号
+        ret = register_chrdev_region(devno, DEVICE_NUM, "globalmem");    // 申请一个已知的设备号
     else {
-        ret = alloc_chrdev_region(&devno, 0, 1, "globalmem");     // 动态申请一个设备号
+        ret = alloc_chrdev_region(&devno, 0, DEVICE_NUM, "globalmem");     // 动态申请一个设备号
         globalmem_major = MAJOR(devno);
     }
 
     if (ret < 0)
         return ret;
 
-    globalmem_devp = kzalloc(sizeof(struct globalmem_dev), GFP_KERNEL);
+    globalmem_devp = kzalloc(sizeof(struct globalmem_dev) * DEVICE_NUM, GFP_KERNEL);
     if (!globalmem_devp){
         ret = -ENOMEM;
         goto fail_malloc;
     }
     
-    globalmem_setup_cdev(globalmem_devp, 0);     // 设备号和gloablmem_dev结构体都申请成功
+    for (i=0; i<DEVICE_NUM; i++)
+    {
+        globalmem_setup_cdev(globalmem_devp + i, i);     // 设备号和gloablmem_dev结构体都申请成功
+        mutex_init(&(globalmem_devp + 1)->mutex);
+    }
 
     printk(KERN_DEBUG "debug -> insmod globalmem\n");
 
     return 0;
     
     fail_malloc:
-    unregister_chrdev_region(devno, 1);    // 释放设备号
+    unregister_chrdev_region(devno, DEVICE_NUM);    // 释放设备号
     return ret;
 }
 
@@ -222,9 +240,13 @@ module_init(globalmem_init);    // 告诉内核使用这个函数初始化内核
 
 static void __exit globalmem_exit(void)
 {
-    cdev_del(&globalmem_devp->cdev);    // 卸载dev设备
+    int i = 0;
+
+    for (i=0; i<DEVICE_NUM; i++)
+        cdev_del(&(globalmem_devp + i)->cdev);    // 卸载dev设备
+        
     kfree(globalmem_devp);
-    unregister_chrdev_region(MKDEV(globalmem_major, 0), 1);     // 释放设备号
+    unregister_chrdev_region(MKDEV(globalmem_major, 0), DEVICE_NUM);     // 释放设备号
 }
 
 module_exit(globalmem_exit);
