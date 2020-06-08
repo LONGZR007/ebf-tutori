@@ -37,8 +37,8 @@ __attribute__((section("__versions"))) = {
 	{ 0x76f6c5ef, "kmalloc_order" },
 	{ 0xe3ec2f2b, "alloc_chrdev_region" },
 	{ 0x3fd78f3b, "register_chrdev_region" },
-	{ 0xf4fa543b, "arm_copy_to_user" },
 	{ 0x9d669763, "memcpy" },
+	{ 0xf4fa543b, "arm_copy_to_user" },
 	{ 0xdb7305a1, "__stack_chk_fail" },
 	{ 0x3dcf1ffa, "__wake_up" },
 	{ 0x28cc25db, "arm_copy_from_user" },
@@ -60,4 +60,4 @@ __attribute__((section(".modinfo"))) =
 "depends=";
 
 
-MODULE_INFO(srcversion, "05246A1D078025679CA5292");
+MODULE_INFO(srcversion, "A39FE3C9D534733E1A67098");
